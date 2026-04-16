@@ -386,70 +386,58 @@ const FIELD_DEFS = [
   { key: 'issue_date', label: 'Issue / print date', mono: true }
 ];
 
-const OCR_PROMPT = `You are an OCR specialist for Kuwait vehicle registration cards used in insurance underwriting.
+const OCR_PROMPT = `You are an expert OCR system specialized in Kuwait vehicle registration cards (استمارة تسجيل مركبة). You have extensive knowledge of exactly how these cards are structured.
 
-Extract every field listed below from the provided card image.
-Return ONLY one valid JSON object.
-No markdown. No explanation text.
+Kuwait registration cards always contain these fields in fixed positions:
+- Top right: plate number (رقم اللوحة) — always in format XX/XXXXX
+- Below plate: civil ID (الرقم المدني) — 12 digits
+- Owner name appears in both Arabic (right side) and English (left side, prefixed with NAME:)
+- Chassis/VIN (رقم القاعدة) — 17 character alphanumeric
+- Engine model code — appears near chassis
+- Year (سنة الصنع) — 4 digit year
+- Expiry date (الانتهاء) — in format YYYY-MM-DD
+- Insurance company (شركة التأمين) — Arabic company name
+- Policy number (رقم الوثيقة) — numeric
+- Reference number (المرجع) — numeric
+- Passengers (الركاب) — single digit
+- Primary and secondary colors (اللون الأول، اللون الثاني)
+- Engine capacity (الدرج) — decimal number like 2.438
+- Nationality (الجنسية) — typically الكويت
+- Issue date — at bottom of card
 
-Required output fields and order:
-1) plate_number
-2) civil_id
-3) owner_name_english
-4) owner_name_arabic
-5) chassis_vin
-6) engine_model
-7) year
-8) expiry_date
-9) insurance_company
-10) policy_number
-11) reference_number
-12) passengers
-13) color_primary
-14) color_secondary
-15) engine_cc
-16) nationality
-17) issue_date
+Your job: read every single field from this image. These cards often have:
+- A diagonal watermark/pattern in the background — ignore it, read through it
+- An official circular ink stamp in the bottom left — fields near it may be partially covered
+- Red and white color scheme — do not let the background color confuse you
+- Bilingual text — extract Arabic and English separately
 
-For EACH field, return:
+RULES:
+- confidence "high" = you can read every character with certainty
+- confidence "med" = you can read most characters but 1-2 are uncertain due to stamp or watermark overlap — extract what you can see and note specifically which characters are unclear
+- confidence "low" = the field is genuinely completely unreadable
+- NEVER mark a field as low if you can read even part of it — use med and note what is unclear
+- For the civil ID specifically: extract all digits you can see clearly, replace genuinely unclear digits with "?" — for example "29104140008?" means the last digit is unclear
+- Do not be conservative — attempt to read every field
+
+Return ONLY this JSON structure, no other text:
 {
-  "value": "exact extracted text or empty string",
-  "confidence": "high|med|low",
-  "note": "specific reason, uncertainty location, or empty string"
-}
-
-Confidence rules (strict):
-- high: every character is clearly visible.
-- med: field is mostly readable but at least one character/digit is uncertain.
-- low: field is completely unreadable.
-
-Critical accuracy rules:
-- Never guess any unreadable character.
-- For civil_id and plate_number: if ANY digit is unclear due to watermark/stamp/blur, set confidence to "med" and note exactly which part is unclear (example: "last 2 digits obscured by watermark").
-- Use "low" only when the field cannot be read at all.
-- Note must be specific and actionable, never generic (bad: "unclear", good: "middle 3 chars covered by blue stamp").
-- owner_name_english must contain Latin script version only.
-- owner_name_arabic must contain Arabic script version only.
-
-Return exactly this shape:
-{
-  "plate_number": {"value":"", "confidence":"high|med|low", "note":""},
-  "civil_id": {"value":"", "confidence":"high|med|low", "note":""},
-  "owner_name_english": {"value":"", "confidence":"high|med|low", "note":""},
-  "owner_name_arabic": {"value":"", "confidence":"high|med|low", "note":""},
-  "chassis_vin": {"value":"", "confidence":"high|med|low", "note":""},
-  "engine_model": {"value":"", "confidence":"high|med|low", "note":""},
-  "year": {"value":"", "confidence":"high|med|low", "note":""},
-  "expiry_date": {"value":"", "confidence":"high|med|low", "note":""},
-  "insurance_company": {"value":"", "confidence":"high|med|low", "note":""},
-  "policy_number": {"value":"", "confidence":"high|med|low", "note":""},
-  "reference_number": {"value":"", "confidence":"high|med|low", "note":""},
-  "passengers": {"value":"", "confidence":"high|med|low", "note":""},
-  "color_primary": {"value":"", "confidence":"high|med|low", "note":""},
-  "color_secondary": {"value":"", "confidence":"high|med|low", "note":""},
-  "engine_cc": {"value":"", "confidence":"high|med|low", "note":""},
-  "nationality": {"value":"", "confidence":"high|med|low", "note":""},
-  "issue_date": {"value":"", "confidence":"high|med|low", "note":""}
+  "plate_number":        { "value": "", "confidence": "high|med|low", "note": "" },
+  "civil_id":            { "value": "", "confidence": "high|med|low", "note": "" },
+  "owner_name_english":  { "value": "", "confidence": "high|med|low", "note": "" },
+  "owner_name_arabic":   { "value": "", "confidence": "high|med|low", "note": "" },
+  "chassis_vin":         { "value": "", "confidence": "high|med|low", "note": "" },
+  "engine_model":        { "value": "", "confidence": "high|med|low", "note": "" },
+  "year":                { "value": "", "confidence": "high|med|low", "note": "" },
+  "expiry_date":         { "value": "", "confidence": "high|med|low", "note": "" },
+  "insurance_company":   { "value": "", "confidence": "high|med|low", "note": "" },
+  "policy_number":       { "value": "", "confidence": "high|med|low", "note": "" },
+  "reference_number":    { "value": "", "confidence": "high|med|low", "note": "" },
+  "passengers":          { "value": "", "confidence": "high|med|low", "note": "" },
+  "color_primary":       { "value": "", "confidence": "high|med|low", "note": "" },
+  "color_secondary":     { "value": "", "confidence": "high|med|low", "note": "" },
+  "engine_cc":           { "value": "", "confidence": "high|med|low", "note": "" },
+  "nationality":         { "value": "", "confidence": "high|med|low", "note": "" },
+  "issue_date":          { "value": "", "confidence": "high|med|low", "note": "" }
 }`;
 
 const dropZone = document.getElementById('drop-zone');
@@ -509,8 +497,9 @@ async function runOCR() {
   hideError();
 
   try {
-    const b64 = await fileToBase64(currentFile);
-    const mediaType = currentFile.type || 'image/jpeg';
+    const processedImage = await prepareEnhancedImage(currentFile);
+    const b64 = processedImage.b64;
+    const mediaType = processedImage.mediaType;
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -520,7 +509,7 @@ async function runOCR() {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1900,
         messages: [{
           role: 'user',
@@ -685,6 +674,47 @@ function fileToBase64(file) {
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
+  });
+}
+
+function prepareEnhancedImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const minWidth = 1500;
+      const sourceWidth = img.naturalWidth || img.width;
+      const sourceHeight = img.naturalHeight || img.height;
+      const scale = sourceWidth < minWidth ? (minWidth / sourceWidth) : 1;
+      const width = Math.round(sourceWidth * scale);
+      const height = Math.round(sourceHeight * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not initialize canvas context.'));
+        return;
+      }
+
+      // Sharpen slightly and increase contrast by 20% before OCR.
+      ctx.filter = 'contrast(120%)';
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+      ctx.filter = 'none';
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = 0.2;
+      ctx.drawImage(canvas, 0, 0, width, height);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.96);
+      const parts = dataUrl.split(',');
+      resolve({ b64: parts[1] || '', mediaType: 'image/jpeg' });
+    };
+    img.onerror = () => reject(new Error('Could not process image for OCR.'));
+    img.src = URL.createObjectURL(file);
   });
 }
 
