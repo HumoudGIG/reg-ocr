@@ -13,6 +13,7 @@
     --bg: #0e0f11;
     --surface: #16181c;
     --surface2: #1e2026;
+    --surface3: #121419;
     --border: #2a2d35;
     --border-bright: #3a3e49;
     --text: #e8eaf0;
@@ -21,40 +22,35 @@
     --accent: #4f8ef7;
     --accent-dim: rgba(79,142,247,0.12);
     --high: #22c97a;
-    --high-bg: rgba(34,201,122,0.1);
-    --high-border: rgba(34,201,122,0.3);
+    --high-border: rgba(34,201,122,0.42);
     --med: #f59e0b;
-    --med-bg: rgba(245,158,11,0.1);
-    --med-border: rgba(245,158,11,0.35);
+    --med-border: rgba(245,158,11,0.5);
     --low: #ef4444;
     --low-bg: rgba(239,68,68,0.1);
-    --low-border: rgba(239,68,68,0.35);
+    --low-border: rgba(239,68,68,0.52);
     --font-mono: 'IBM Plex Mono', monospace;
     --font-sans: 'IBM Plex Sans', sans-serif;
   }
 
   html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; }
 
-  /* ── Layout ── */
   .app { display: grid; grid-template-rows: 52px 1fr; height: 100vh; }
-
   header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 24px; border-bottom: 1px solid var(--border);
-    background: var(--surface); position: relative; z-index: 10;
+    background: var(--surface); z-index: 20;
   }
-  .logo { font-family: var(--font-mono); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; color: var(--text); }
+  .logo { font-family: var(--font-mono); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; }
   .logo span { color: var(--accent); }
   .header-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.06em; }
 
-  .workspace { display: grid; grid-template-columns: 1fr 440px; overflow: hidden; }
-
-  /* ── Left: Image panel ── */
-  .image-panel {
-    display: flex; flex-direction: column;
-    border-right: 1px solid var(--border);
-    background: var(--bg); overflow: hidden;
+  .workspace {
+    display: grid;
+    grid-template-columns: minmax(520px, 1fr) 500px;
+    overflow: hidden;
+    min-height: 0;
   }
+
   .panel-header {
     padding: 14px 20px; border-bottom: 1px solid var(--border);
     font-family: var(--font-mono); font-size: 11px; font-weight: 500;
@@ -63,307 +59,289 @@
   }
   .panel-header .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-bright); }
 
+  .image-panel {
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--border);
+    background: var(--surface3); min-height: 0;
+  }
   .drop-zone {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border: 1.5px dashed var(--border-bright); margin: 20px; border-radius: 8px;
-    cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+    flex: 1; margin: 16px; border-radius: 8px; border: 1.5px dashed var(--border-bright);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    position: relative; cursor: pointer; transition: all 0.2s; min-height: 260px;
   }
-  .drop-zone:hover, .drop-zone.drag-over {
-    border-color: var(--accent); background: var(--accent-dim);
-  }
-  .drop-zone.has-image { border-style: solid; border-color: var(--border); cursor: default; margin: 0; border-radius: 0; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+  .drop-zone.has-image { border-style: solid; border-color: var(--border); background: #0a0b0d; }
 
-  .drop-instructions { text-align: center; pointer-events: none; }
-  .drop-icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
-  .drop-title { font-size: 15px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+  .drop-instructions { text-align: center; pointer-events: none; padding: 20px; }
+  .drop-icon { font-size: 30px; margin-bottom: 12px; opacity: 0.45; }
+  .drop-title { font-size: 15px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; }
   .drop-sub { font-size: 12px; color: var(--text-dim); }
   .drop-formats { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 8px; letter-spacing: 0.06em; }
 
   #file-input { display: none; }
-
-  .image-container { width: 100%; height: 100%; position: relative; overflow: hidden; display: none; }
+  .image-container { width: 100%; height: 100%; display: none; position: relative; }
   .image-container.visible { display: block; }
-  #card-img { width: 100%; height: 100%; object-fit: contain; display: block; }
-
-  /* Field highlight overlays on image */
-  .img-highlight {
-    position: absolute; border: 2px solid transparent; border-radius: 3px;
-    transition: all 0.2s; pointer-events: none; opacity: 0;
+  #card-img {
+    width: 100%; height: 100%; object-fit: contain; display: block;
+    cursor: zoom-in; background: #090a0d;
   }
-  .img-highlight.active { opacity: 1; }
-  .img-highlight.high { border-color: var(--high); background: rgba(34,201,122,0.15); }
-  .img-highlight.med  { border-color: var(--med);  background: rgba(245,158,11,0.15); }
-  .img-highlight.low  { border-color: var(--low);  background: rgba(239,68,68,0.15); }
+
+  .zoom-tip {
+    position: absolute; right: 10px; bottom: 10px;
+    background: rgba(0,0,0,0.65); color: var(--text-muted);
+    border: 1px solid var(--border-bright); border-radius: 5px;
+    font-family: var(--font-mono); font-size: 10px; padding: 4px 8px;
+    letter-spacing: 0.05em;
+  }
 
   .image-actions {
-    padding: 12px 20px; border-top: 1px solid var(--border);
+    padding: 12px 16px; border-top: 1px solid var(--border);
     display: none; gap: 10px;
   }
   .image-actions.visible { display: flex; }
+
   .btn-ghost {
-    background: transparent; border: 1px solid var(--border-bright);
-    color: var(--text-muted); font-family: var(--font-mono); font-size: 11px;
-    letter-spacing: 0.06em; padding: 6px 14px; border-radius: 4px;
-    cursor: pointer; transition: all 0.15s;
+    background: transparent; border: 1px solid var(--border-bright); color: var(--text-muted);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+    padding: 7px 12px; border-radius: 4px; cursor: pointer; transition: all 0.15s;
   }
   .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
 
-  /* ── Right: Fields panel ── */
-  .fields-panel {
-    display: flex; flex-direction: column;
-    background: var(--surface); overflow: hidden;
+  .fields-panel { display: flex; flex-direction: column; background: var(--surface); min-height: 0; }
+  .error-banner {
+    margin: 14px 14px 0; padding: 10px 12px; border-radius: 6px;
+    background: var(--low-bg); border: 1px solid var(--low-border);
+    color: var(--low); font-size: 12px; display: none;
   }
+  .error-banner.visible { display: block; }
 
-  .fields-scroll { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-  .fields-scroll::-webkit-scrollbar { width: 4px; }
-  .fields-scroll::-webkit-scrollbar-track { background: transparent; }
-  .fields-scroll::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
-
-  /* State: empty */
-  .empty-state {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 10px; padding: 40px;
+  .empty-state, .scanning-state {
+    flex: 1; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 30px; text-align: center;
   }
-  .empty-state p { font-size: 13px; color: var(--text-dim); text-align: center; line-height: 1.7; }
-
-  /* State: scanning */
-  .scanning-state { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px; flex: 1; }
-  .scanning-state.active { display: flex; }
+  .empty-state.active, .scanning-state.active { display: flex; }
+  .empty-state p { color: var(--text-dim); line-height: 1.7; }
   .scan-ring {
-    width: 48px; height: 48px; border-radius: 50%;
+    width: 46px; height: 46px; border-radius: 50%;
     border: 2px solid var(--border-bright); border-top-color: var(--accent);
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.8s linear infinite; margin-bottom: 12px;
   }
+  .scan-label { font-family: var(--font-mono); letter-spacing: 0.06em; color: var(--text-muted); font-size: 12px; }
+  .scan-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .scan-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
-  .scan-sub { font-size: 12px; color: var(--text-dim); text-align: center; }
 
-  /* Field card */
-  .field-card {
-    background: var(--surface2); border-radius: 6px; padding: 12px 14px;
-    border: 1px solid var(--border); transition: border-color 0.15s;
-    cursor: pointer; position: relative;
+  .fields-scroll {
+    flex: 1; overflow-y: auto; padding: 14px;
+    display: none; flex-direction: column; gap: 10px;
   }
-  .field-card:hover { border-color: var(--border-bright); }
-  .field-card.focused { border-color: var(--accent); }
+  .fields-scroll.visible { display: flex; }
+  .fields-scroll::-webkit-scrollbar { width: 5px; }
+  .fields-scroll::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
 
-  .field-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .field-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; color: var(--text-dim); text-transform: uppercase; }
-  .confidence-badge {
-    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
-    padding: 2px 8px; border-radius: 3px; letter-spacing: 0.06em;
+  .field-row {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-left: 4px solid var(--border-bright);
+    border-radius: 6px; padding: 10px 10px 10px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .confidence-badge.high { background: var(--high-bg); color: var(--high); border: 1px solid var(--high-border); }
-  .confidence-badge.med  { background: var(--med-bg);  color: var(--med);  border: 1px solid var(--med-border); }
-  .confidence-badge.low  { background: var(--low-bg);  color: var(--low);  border: 1px solid var(--low-border); }
-
-  .field-value {
-    font-family: var(--font-mono); font-size: 15px; font-weight: 500;
-    color: var(--text); letter-spacing: 0.02em; word-break: break-all;
+  .field-row.conf-high { border-left-color: var(--high); }
+  .field-row.conf-med { border-left-color: var(--med); }
+  .field-row.conf-low { border-left-color: var(--low); }
+  .field-row.warning-focus {
+    animation: pulse-low 1.2s ease-in-out infinite;
+    box-shadow: 0 0 0 1px var(--low-border);
   }
-  .field-value.arabic { font-family: var(--font-sans); font-size: 14px; direction: rtl; text-align: right; }
-  .field-value.obscured { color: var(--text-dim); font-style: italic; font-size: 13px; }
-
-  /* Confirm input — shown for med/low fields */
-  .confirm-row {
-    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
-    display: none;
+  @keyframes pulse-low {
+    0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+    70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
   }
-  .confirm-row.visible { display: block; }
-  .confirm-label { font-size: 11px; color: var(--med); margin-bottom: 6px; font-family: var(--font-mono); }
-  .confirm-label.low-label { color: var(--low); }
 
-  .confirm-input {
-    width: 100%; background: var(--bg); border: 1px solid var(--border-bright);
-    color: var(--text); font-family: var(--font-mono); font-size: 14px;
-    padding: 8px 10px; border-radius: 4px; outline: none; transition: border-color 0.15s;
+  .field-warning {
+    display: none; margin-bottom: 7px;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em;
+    color: var(--low); background: rgba(239,68,68,0.08);
+    border: 1px solid var(--low-border); border-radius: 4px; padding: 4px 6px;
   }
-  .confirm-input:focus { border-color: var(--accent); }
-  .confirm-input.confirmed { border-color: var(--high); background: var(--high-bg); }
+  .field-row.warning-focus .field-warning { display: block; }
 
-  .confirmed-check {
-    display: none; align-items: center; gap: 6px;
-    font-family: var(--font-mono); font-size: 11px; color: var(--high); margin-top: 6px;
+  .field-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .field-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-dim); }
+  .field-meta { display: flex; align-items: center; gap: 8px; }
+  .confidence-pill {
+    font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.05em;
+    border: 1px solid var(--border-bright); color: var(--text-muted);
   }
-  .confirmed-check.visible { display: flex; }
+  .confidence-pill.high { color: var(--high); border-color: var(--high-border); }
+  .confidence-pill.med { color: var(--med); border-color: var(--med-border); }
+  .confidence-pill.low { color: var(--low); border-color: var(--low-border); }
 
-  /* Copy button per field */
   .field-copy {
-    position: absolute; top: 10px; right: 46px;
     background: transparent; border: none; color: var(--text-dim);
-    cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 3px;
-    transition: all 0.15s; opacity: 0;
+    cursor: pointer; padding: 2px 6px; border-radius: 3px; font-size: 13px;
   }
-  .field-card:hover .field-copy { opacity: 1; }
   .field-copy:hover { background: var(--border); color: var(--text); }
   .field-copy.copied { color: var(--high); }
 
-  /* Footer actions */
-  .fields-footer {
-    padding: 14px 16px; border-top: 1px solid var(--border);
-    display: flex; flex-direction: column; gap: 8px;
+  .field-input {
+    width: 100%; background: #0f1115; border: 1px solid var(--border-bright);
+    border-radius: 5px; padding: 8px 10px; color: var(--text);
+    font-family: var(--font-mono); font-size: 14px; outline: none;
   }
-  .progress-row { display: flex; align-items: center; justify-content: space-between; }
-  .progress-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
-  .progress-bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; margin: 0 12px; }
-  .progress-fill { height: 100%; background: var(--high); border-radius: 2px; transition: width 0.3s; width: 0%; }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79,142,247,0.14); }
+  .field-input.arabic {
+    font-family: var(--font-sans); direction: rtl; text-align: right;
+    font-size: 15px; letter-spacing: 0;
+  }
+  .field-note {
+    margin-top: 6px; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);
+  }
 
+  .fields-footer {
+    border-top: 1px solid var(--border); padding: 12px 14px;
+    display: none; gap: 8px; flex-direction: column;
+  }
+  .fields-footer.visible { display: flex; }
+
+  .btn-primary, .btn-secondary {
+    width: 100%; border-radius: 5px; cursor: pointer;
+    font-family: var(--font-mono);
+  }
   .btn-primary {
-    width: 100%; padding: 11px; background: var(--accent); color: #fff;
-    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
-    letter-spacing: 0.08em; border: none; border-radius: 5px; cursor: pointer;
-    transition: all 0.15s; text-transform: uppercase;
+    border: none; background: var(--accent); color: #fff;
+    padding: 10px 11px; letter-spacing: 0.08em; font-size: 11px; text-transform: uppercase;
   }
   .btn-primary:hover { background: #3a7ee6; }
-  .btn-primary:disabled { background: var(--surface2); color: var(--text-dim); cursor: not-allowed; border: 1px solid var(--border); }
-
   .btn-secondary {
-    width: 100%; padding: 9px; background: transparent; color: var(--text-muted);
-    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
-    border: 1px solid var(--border-bright); border-radius: 5px; cursor: pointer;
-    transition: all 0.15s;
+    border: 1px solid var(--border-bright); background: transparent; color: var(--text-muted);
+    padding: 9px 10px; letter-spacing: 0.05em; font-size: 11px;
   }
   .btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
-  .btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* Toast */
   .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(80px);
     background: var(--surface2); border: 1px solid var(--border-bright);
-    font-family: var(--font-mono); font-size: 12px; color: var(--text);
-    padding: 10px 20px; border-radius: 6px; transition: transform 0.25s;
-    z-index: 100; white-space: nowrap;
+    border-radius: 6px; padding: 9px 16px; z-index: 250;
+    font-family: var(--font-mono); font-size: 12px; transition: transform 0.2s;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.success { border-color: var(--high-border); color: var(--high); }
 
-  /* Error banner */
-  .error-banner {
-    margin: 16px; padding: 12px 14px; background: var(--low-bg);
-    border: 1px solid var(--low-border); border-radius: 6px;
-    font-size: 13px; color: var(--low); display: none;
-  }
-  .error-banner.visible { display: block; }
-
-  /* Config modal */
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-    display: flex; align-items: center; justify-content: center; z-index: 200;
-    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.68);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s;
   }
   .modal-overlay.open { opacity: 1; pointer-events: all; }
   .modal {
-    background: var(--surface); border: 1px solid var(--border-bright);
-    border-radius: 10px; padding: 28px; width: 440px; max-width: 90vw;
+    width: 440px; max-width: 92vw; background: var(--surface);
+    border: 1px solid var(--border-bright); border-radius: 10px; padding: 24px;
   }
-  .modal h2 { font-family: var(--font-mono); font-size: 14px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.06em; }
-  .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
-  .modal label { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 6px; }
+  .modal h2 { font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .modal p { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; line-height: 1.55; }
+  .modal label { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 6px; }
   .modal input {
     width: 100%; background: var(--bg); border: 1px solid var(--border-bright);
-    color: var(--text); font-family: var(--font-mono); font-size: 13px;
-    padding: 10px 12px; border-radius: 5px; outline: none; margin-bottom: 16px;
+    border-radius: 5px; padding: 10px 12px; color: var(--text); font-family: var(--font-mono); margin-bottom: 16px;
   }
-  .modal input:focus { border-color: var(--accent); }
-  .modal-note { font-size: 11px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.6; }
-  .modal-note a { color: var(--accent); text-decoration: none; }
+  .modal input:focus { outline: none; border-color: var(--accent); }
+  .modal-note { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.6; }
   .modal-actions { display: flex; gap: 8px; }
 
-  /* Utility */
-  .hidden { display: none !important; }
-  .fields-list { display: flex; flex-direction: column; gap: 8px; }
+  .image-zoom-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 280; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .image-zoom-overlay.open { opacity: 1; pointer-events: all; }
+  .zoom-content {
+    position: relative; width: min(95vw, 1400px); height: min(92vh, 980px);
+    border: 1px solid var(--border-bright); border-radius: 8px; background: #000;
+    overflow: auto;
+  }
+  #zoom-img {
+    display: block; max-width: none; max-height: none;
+    width: auto; height: auto; min-width: 100%; min-height: 100%; object-fit: contain;
+    margin: auto;
+  }
+  .zoom-close {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0,0,0,0.55); border: 1px solid var(--border-bright);
+    color: var(--text); border-radius: 4px; padding: 6px 10px;
+    font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+  }
+  .zoom-help {
+    position: absolute; left: 10px; bottom: 10px;
+    background: rgba(0,0,0,0.55); border: 1px solid var(--border-bright);
+    border-radius: 4px; padding: 4px 8px; font-family: var(--font-mono);
+    font-size: 10px; color: var(--text-muted);
+  }
+
+  @media (max-width: 1100px) {
+    .workspace { grid-template-columns: 1fr; }
+    .image-panel { border-right: none; border-bottom: 1px solid var(--border); min-height: 46vh; }
+    .fields-panel { min-height: 54vh; }
+  }
 </style>
 </head>
 <body>
-
 <div class="app">
   <header>
     <div class="logo">REG<span>·</span>OCR</div>
     <div class="header-meta">UNDERWRITING TOOL — INTERNAL USE ONLY</div>
-    <button class="btn-ghost" onclick="openConfig()" style="font-size:11px;">⚙ CONFIG</button>
+    <button class="btn-ghost" onclick="openConfig()">CONFIG</button>
   </header>
 
   <div class="workspace">
-
-    <!-- Left: Image -->
     <div class="image-panel">
-      <div class="panel-header">
-        <div class="dot"></div>
-        SOURCE DOCUMENT
-      </div>
-
-      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="panel-header"><div class="dot"></div>SOURCE DOCUMENT</div>
+      <div class="drop-zone" id="drop-zone" onclick="triggerBrowse()">
         <div class="drop-instructions" id="drop-instructions">
           <div class="drop-icon">⊡</div>
           <div class="drop-title">Drop registration card here</div>
           <div class="drop-sub">or click to browse</div>
-          <div class="drop-formats">PNG · JPG · WEBP · PDF</div>
+          <div class="drop-formats">PNG · JPG · WEBP</div>
         </div>
         <div class="image-container" id="image-container">
           <img id="card-img" alt="Registration card">
+          <div class="zoom-tip">Click image to zoom</div>
         </div>
       </div>
-
-      <input type="file" id="file-input" accept="image/*,.pdf">
-
+      <input type="file" id="file-input" accept="image/*">
       <div class="image-actions" id="image-actions">
-        <button class="btn-ghost" onclick="resetAll()">↺ New card</button>
-        <button class="btn-ghost" id="btn-rescan" onclick="runOCR()" style="display:none;">⟳ Re-scan</button>
+        <button class="btn-ghost" onclick="resetAll()">New card</button>
+        <button class="btn-ghost" id="btn-rescan" onclick="runOCR()" style="display:none;">Re-scan</button>
       </div>
     </div>
 
-    <!-- Right: Fields -->
     <div class="fields-panel">
-      <div class="panel-header">
-        <div class="dot"></div>
-        EXTRACTED FIELDS
-      </div>
-
+      <div class="panel-header"><div class="dot"></div>EXTRACTED FIELDS</div>
       <div class="error-banner" id="error-banner"></div>
-
-      <!-- Empty state -->
-      <div class="empty-state" id="empty-state">
+      <div class="empty-state active" id="empty-state">
         <p>Upload a vehicle registration card<br>to begin extraction.</p>
-        <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing:0.06em;">KUWAIT MOH REG CARDS SUPPORTED</p>
       </div>
-
-      <!-- Scanning -->
       <div class="scanning-state" id="scanning-state">
         <div class="scan-ring"></div>
         <div class="scan-label">READING DOCUMENT</div>
-        <div class="scan-sub">Analysing image quality<br>and extracting fields…</div>
+        <div class="scan-sub">Extracting all required fields and confidence...</div>
       </div>
-
-      <!-- Fields list -->
-      <div class="fields-scroll hidden" id="fields-scroll">
-        <div class="fields-list" id="fields-list"></div>
-      </div>
-
-      <!-- Footer -->
-      <div class="fields-footer" id="fields-footer" style="display:none;">
-        <div class="progress-row">
-          <span class="progress-label" id="progress-label">0 / 0 confirmed</span>
-          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-        </div>
-        <button class="btn-primary" id="btn-copy-all" onclick="copyAll()" disabled>Copy all confirmed fields</button>
-        <button class="btn-secondary" id="btn-export" onclick="exportCSV()" disabled>Export as CSV</button>
+      <div class="fields-scroll" id="fields-scroll"></div>
+      <div class="fields-footer" id="fields-footer">
+        <button class="btn-primary" onclick="copyAll()">Copy all fields</button>
+        <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Config modal -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h2>API CONFIGURATION</h2>
-    <p>Enter your Anthropic API key. It is stored only in your browser's localStorage and never sent anywhere except directly to the Anthropic API.</p>
+    <p>Enter your Anthropic API key. It is stored only in your browser localStorage and sent only to Anthropic.</p>
     <label>ANTHROPIC API KEY</label>
-    <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off">
+    <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
     <div class="modal-note">
-      Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
-      This tool uses <strong>claude-haiku-4-5</strong> — approximately $0.001 per scan.
-      <br><br>
-      <strong>Note:</strong> For production use, route through a Cloudflare Worker to keep the key server-side. See README.md for setup instructions.
+      Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);text-decoration:none;">console.anthropic.com</a>.<br>
+      Model: <strong>claude-haiku-4-5-20251001</strong>.
     </div>
     <div class="modal-actions">
       <button class="btn-primary" style="flex:1;" onclick="saveConfig()">Save key</button>
@@ -372,108 +350,167 @@
   </div>
 </div>
 
+<div class="image-zoom-overlay" id="image-zoom-overlay">
+  <div class="zoom-content" id="zoom-content">
+    <button class="zoom-close" onclick="closeZoom()">Close</button>
+    <img id="zoom-img" alt="Zoomed card image">
+    <div class="zoom-help">Use browser zoom (Ctrl +/-) and scroll</div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
 let currentFile = null;
-let extractedFields = [];
-let confirmedValues = {};
+let imageObjectUrl = '';
+let ocrData = {};
+let fieldValues = {};
 
-// ─── Field definitions (what Claude should extract) ───────────────────────────
 const FIELD_DEFS = [
-  { key: 'plate_number',      label: 'Plate number',         arabic: 'رقم اللوحة',    mono: true },
-  { key: 'civil_id',          label: 'Civil ID',             arabic: 'الرقم المدني',   mono: true },
-  { key: 'owner_name',        label: 'Owner name',           arabic: 'الاسم',          mono: false },
-  { key: 'chassis_vin',       label: 'Chassis / VIN',        arabic: 'رقم القاعدة',   mono: true },
-  { key: 'engine_model',      label: 'Engine / model code',  arabic: 'المحرك',         mono: true },
-  { key: 'year',              label: 'Year',                 arabic: 'سنة الصنع',      mono: true },
-  { key: 'expiry_date',       label: 'Expiry date',          arabic: 'الانتهاء',       mono: true },
-  { key: 'insurance_company', label: 'Insurance company',    arabic: 'شركة التأمين',   mono: false },
-  { key: 'policy_number',     label: 'Policy number',        arabic: 'رقم الوثيقة',   mono: true },
-  { key: 'reference_number',  label: 'Reference number',     arabic: 'المرجع',         mono: true },
-  { key: 'passengers',        label: 'Passengers',           arabic: 'الركاب',         mono: true },
-  { key: 'color_primary',     label: 'Primary colour',       arabic: 'اللون الأول',    mono: false },
-  { key: 'color_secondary',   label: 'Secondary colour',     arabic: 'اللون الثاني',   mono: false },
-  { key: 'engine_cc',         label: 'Engine capacity (L)',  arabic: 'الدرج',          mono: true },
-  { key: 'nationality',       label: 'Nationality',          arabic: 'الجنسية',        mono: false },
-  { key: 'issue_date',        label: 'Issue / print date',   arabic: 'تاريخ الإصدار',  mono: true },
+  { key: 'plate_number', label: 'Plate number', mono: true },
+  { key: 'civil_id', label: 'Civil ID', mono: true },
+  { key: 'owner_name_english', label: 'Name (English)', mono: false },
+  { key: 'owner_name_arabic', label: 'Name (Arabic)', mono: false, arabic: true },
+  { key: 'chassis_vin', label: 'Chassis / VIN', mono: true },
+  { key: 'engine_model', label: 'Engine / model code', mono: true },
+  { key: 'year', label: 'Year', mono: true },
+  { key: 'expiry_date', label: 'Expiry date', mono: true },
+  { key: 'insurance_company', label: 'Insurance company', mono: false },
+  { key: 'policy_number', label: 'Policy number', mono: true },
+  { key: 'reference_number', label: 'Reference number', mono: true },
+  { key: 'passengers', label: 'Passengers', mono: true },
+  { key: 'color_primary', label: 'Primary colour', mono: false },
+  { key: 'color_secondary', label: 'Secondary colour', mono: false },
+  { key: 'engine_cc', label: 'Engine capacity (L)', mono: true },
+  { key: 'nationality', label: 'Nationality', mono: false },
+  { key: 'issue_date', label: 'Issue / print date', mono: true }
 ];
 
-const OCR_PROMPT = `You are an OCR engine for Kuwait vehicle registration cards. These cards are bilingual Arabic/English and often have watermarks, stamps, and low image quality.
+const OCR_PROMPT = `You are an OCR specialist for Kuwait vehicle registration cards used in insurance underwriting.
 
-Extract every field you can find. For EACH field, you MUST provide:
-1. The value (exactly as printed, do not guess or invent)
-2. A confidence level: "high" (clearly readable), "med" (partially obscured or uncertain), or "low" (unreadable/missing)
-3. A note if the field is obscured by a watermark or stamp
+Extract every field listed below from the provided card image.
+Return ONLY one valid JSON object.
+No markdown. No explanation text.
 
-Return ONLY a valid JSON object with this exact structure:
+Required output fields and order:
+1) plate_number
+2) civil_id
+3) owner_name_english
+4) owner_name_arabic
+5) chassis_vin
+6) engine_model
+7) year
+8) expiry_date
+9) insurance_company
+10) policy_number
+11) reference_number
+12) passengers
+13) color_primary
+14) color_secondary
+15) engine_cc
+16) nationality
+17) issue_date
+
+For EACH field, return:
 {
-  "plate_number":      { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "civil_id":          { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "owner_name":        { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "chassis_vin":       { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "engine_model":      { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "year":              { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "expiry_date":       { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "insurance_company": { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "policy_number":     { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "reference_number":  { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "passengers":        { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "color_primary":     { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "color_secondary":   { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "engine_cc":         { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "nationality":       { "value": "...", "confidence": "high|med|low", "note": "..." },
-  "issue_date":        { "value": "...", "confidence": "high|med|low", "note": "..." }
+  "value": "exact extracted text or empty string",
+  "confidence": "high|med|low",
+  "note": "specific reason, uncertainty location, or empty string"
 }
 
-CRITICAL RULES:
-- If you CANNOT read a value clearly, use "low" confidence and set value to "" (empty string). NEVER guess a digit.
-- For civil IDs and plate numbers: if even ONE digit is uncertain, mark as "med" or "low" and note which part is unclear.
-- If a field is completely obscured by a stamp or watermark, set confidence to "low" and note it.
-- Do NOT return markdown, do NOT return any text outside the JSON object.`;
+Confidence rules (strict):
+- high: every character is clearly visible.
+- med: field is mostly readable but at least one character/digit is uncertain.
+- low: field is completely unreadable.
 
-// ─── File handling ────────────────────────────────────────────────────────────
+Critical accuracy rules:
+- Never guess any unreadable character.
+- For civil_id and plate_number: if ANY digit is unclear due to watermark/stamp/blur, set confidence to "med" and note exactly which part is unclear (example: "last 2 digits obscured by watermark").
+- Use "low" only when the field cannot be read at all.
+- Note must be specific and actionable, never generic (bad: "unclear", good: "middle 3 chars covered by blue stamp").
+- owner_name_english must contain Latin script version only.
+- owner_name_arabic must contain Arabic script version only.
+
+Return exactly this shape:
+{
+  "plate_number": {"value":"", "confidence":"high|med|low", "note":""},
+  "civil_id": {"value":"", "confidence":"high|med|low", "note":""},
+  "owner_name_english": {"value":"", "confidence":"high|med|low", "note":""},
+  "owner_name_arabic": {"value":"", "confidence":"high|med|low", "note":""},
+  "chassis_vin": {"value":"", "confidence":"high|med|low", "note":""},
+  "engine_model": {"value":"", "confidence":"high|med|low", "note":""},
+  "year": {"value":"", "confidence":"high|med|low", "note":""},
+  "expiry_date": {"value":"", "confidence":"high|med|low", "note":""},
+  "insurance_company": {"value":"", "confidence":"high|med|low", "note":""},
+  "policy_number": {"value":"", "confidence":"high|med|low", "note":""},
+  "reference_number": {"value":"", "confidence":"high|med|low", "note":""},
+  "passengers": {"value":"", "confidence":"high|med|low", "note":""},
+  "color_primary": {"value":"", "confidence":"high|med|low", "note":""},
+  "color_secondary": {"value":"", "confidence":"high|med|low", "note":""},
+  "engine_cc": {"value":"", "confidence":"high|med|low", "note":""},
+  "nationality": {"value":"", "confidence":"high|med|low", "note":""},
+  "issue_date": {"value":"", "confidence":"high|med|low", "note":""}
+}`;
+
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
+const cardImg = document.getElementById('card-img');
 
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('drag-over');
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
   if (file) handleFile(file);
 });
-fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+cardImg.addEventListener('click', () => {
+  if (!currentFile) return;
+  openZoom();
+});
+
+function triggerBrowse() {
+  if (!currentFile) fileInput.click();
+}
 
 function handleFile(file) {
-  if (!file.type.startsWith('image/')) { showToast('Please upload an image file (JPG, PNG, WEBP)', false); return; }
+  if (!file.type.startsWith('image/')) {
+    showToast('Please upload an image file (JPG, PNG, WEBP)');
+    return;
+  }
+
+  if (imageObjectUrl) URL.revokeObjectURL(imageObjectUrl);
+  imageObjectUrl = URL.createObjectURL(file);
   currentFile = file;
-  const url = URL.createObjectURL(file);
-  const img = document.getElementById('card-img');
-  img.src = url;
-  document.getElementById('image-container').classList.add('visible');
+  cardImg.src = imageObjectUrl;
+  document.getElementById('zoom-img').src = imageObjectUrl;
+
   document.getElementById('drop-instructions').style.display = 'none';
+  document.getElementById('image-container').classList.add('visible');
+  document.getElementById('image-actions').classList.add('visible');
+  document.getElementById('btn-rescan').style.display = 'inline-block';
   dropZone.classList.add('has-image');
   dropZone.style.cursor = 'default';
-  document.getElementById('image-actions').classList.add('visible');
-  document.getElementById('btn-rescan').style.display = 'none';
   hideError();
   runOCR();
 }
 
-// ─── OCR ──────────────────────────────────────────────────────────────────────
 async function runOCR() {
   const apiKey = localStorage.getItem('ocr_api_key');
   if (!apiKey) { openConfig(); return; }
   if (!currentFile) return;
 
   showScanning();
+  hideError();
 
   try {
     const b64 = await fileToBase64(currentFile);
     const mediaType = currentFile.type || 'image/jpeg';
-
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -484,7 +521,7 @@ async function runOCR() {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1500,
+        max_tokens: 1900,
         messages: [{
           role: 'user',
           content: [
@@ -502,191 +539,134 @@ async function runOCR() {
 
     const data = await response.json();
     const raw = data.content?.[0]?.text || '';
+    const parsed = safeParseOcr(raw);
+    ocrData = normalizeOcr(parsed);
+    fieldValues = {};
 
-    let parsed;
-    try {
-      const cleaned = raw.replace(/```json|```/g, '').trim();
-      parsed = JSON.parse(cleaned);
-    } catch {
-      throw new Error('Could not parse response from Claude. Try re-scanning.');
-    }
+    FIELD_DEFS.forEach(def => {
+      fieldValues[def.key] = ocrData[def.key]?.value || '';
+    });
 
-    extractedFields = parsed;
-    confirmedValues = {};
-    renderFields(parsed);
-    document.getElementById('btn-rescan').style.display = 'inline-block';
+    renderFields();
+    focusFirstLowField();
 
   } catch (err) {
-    showError(err.message);
+    showError(err.message || 'OCR scan failed.');
     showEmpty();
   }
 }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+function safeParseOcr(raw) {
+  const cleaned = (raw || '').replace(/```json|```/g, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    throw new Error('Could not parse response from Claude. Try re-scan.');
+  }
 }
 
-// ─── Render fields ────────────────────────────────────────────────────────────
-function renderFields(data) {
-  const list = document.getElementById('fields-list');
-  list.innerHTML = '';
+function normalizeOcr(parsed) {
+  const normalized = {};
+  FIELD_DEFS.forEach(def => {
+    const field = parsed && typeof parsed === 'object' ? parsed[def.key] : null;
+    const value = typeof field?.value === 'string' ? field.value : '';
+    const confidence = ['high', 'med', 'low'].includes(field?.confidence) ? field.confidence : (value ? 'med' : 'low');
+    const note = typeof field?.note === 'string' ? field.note.trim() : '';
+    normalized[def.key] = { value, confidence, note };
+  });
+  return normalized;
+}
+
+function renderFields() {
+  const container = document.getElementById('fields-scroll');
+  container.innerHTML = '';
 
   FIELD_DEFS.forEach(def => {
-    const field = data[def.key];
-    if (!field) return;
+    const field = ocrData[def.key] || { value: '', confidence: 'low', note: '' };
+    const row = document.createElement('div');
+    row.className = `field-row conf-${field.confidence}`;
+    row.dataset.key = def.key;
+    row.dataset.confidence = field.confidence;
 
-    const { value, confidence, note } = field;
-    const isEmpty = !value || value.trim() === '';
-    const effectiveConf = isEmpty ? 'low' : confidence;
-    const needsConfirm = effectiveConf === 'med' || effectiveConf === 'low';
-
-    const card = document.createElement('div');
-    card.className = 'field-card';
-    card.dataset.key = def.key;
-    card.dataset.confidence = effectiveConf;
-
-    const displayValue = isEmpty ? '— not readable —' : value;
-    const valueClass = isEmpty ? 'field-value obscured' : (def.mono ? 'field-value' : 'field-value arabic');
-
-    let confirmHTML = '';
-    if (needsConfirm) {
-      const labelClass = effectiveConf === 'low' ? 'confirm-label low-label' : 'confirm-label';
-      const labelText = effectiveConf === 'low'
-        ? 'Cannot read — enter manually:'
-        : 'Uncertain — verify and confirm:';
-      const placeholder = isEmpty ? 'Type value from document' : `Confirm: ${value}`;
-      confirmHTML = `
-        <div class="confirm-row visible">
-          <div class="${labelClass}">${labelText}</div>
-          <input class="confirm-input" type="text" placeholder="${placeholder}"
-            data-key="${def.key}" data-original="${value}"
-            oninput="handleConfirmInput(this)" onpaste="handleConfirmInput(this)">
-          <div class="confirmed-check" id="check-${def.key}">✓ Confirmed</div>
-        </div>`;
-    }
-
-    const noteHTML = note ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px;font-family:var(--font-mono);">${note}</div>` : '';
-
-    card.innerHTML = `
-      <button class="field-copy" onclick="copyField('${def.key}')" title="Copy value">⎘</button>
+    const warning = `<div class="field-warning">Verify this field — unclear in image</div>`;
+    const note = field.note ? `<div class="field-note">${escapeHtml(field.note)}</div>` : '';
+    row.innerHTML = `
+      ${warning}
       <div class="field-top">
-        <span class="field-label">${def.label}</span>
-        <span class="confidence-badge ${effectiveConf}">${effectiveConf.toUpperCase()}</span>
+        <div class="field-label">${def.label}</div>
+        <div class="field-meta">
+          <span class="confidence-pill ${field.confidence}">${field.confidence.toUpperCase()}</span>
+          <button class="field-copy" title="Copy field" data-key="${def.key}">⎘</button>
+        </div>
       </div>
-      <div class="${valueClass}">${displayValue}</div>
-      ${noteHTML}
-      ${confirmHTML}
+      <input
+        class="field-input ${def.arabic ? 'arabic' : ''}"
+        type="text"
+        data-key="${def.key}"
+        value="${escapeAttr(fieldValues[def.key] || '')}"
+      >
+      ${note}
     `;
-
-    card.addEventListener('mouseenter', () => highlightField(def.key));
-    card.addEventListener('mouseleave', () => clearHighlights());
-    card.addEventListener('click', () => card.classList.toggle('focused'));
-
-    list.appendChild(card);
-
-    // Auto-confirm high confidence fields
-    if (effectiveConf === 'high') {
-      confirmedValues[def.key] = value;
-    }
+    container.appendChild(row);
   });
 
-  document.getElementById('empty-state').style.display = 'none';
+  container.querySelectorAll('.field-input').forEach(input => {
+    input.addEventListener('input', e => {
+      fieldValues[e.target.dataset.key] = e.target.value;
+    });
+  });
+
+  container.querySelectorAll('.field-copy').forEach(btn => {
+    btn.addEventListener('click', () => copyField(btn.dataset.key, btn));
+  });
+
+  document.getElementById('empty-state').classList.remove('active');
   document.getElementById('scanning-state').classList.remove('active');
-  document.getElementById('fields-scroll').classList.remove('hidden');
-  document.getElementById('fields-footer').style.display = 'flex';
-
-  updateProgress();
+  document.getElementById('fields-scroll').classList.add('visible');
+  document.getElementById('fields-footer').classList.add('visible');
 }
 
-// ─── Confirm input handling ───────────────────────────────────────────────────
-function handleConfirmInput(input) {
-  const key = input.dataset.key;
-  const val = input.value.trim();
-  const check = document.getElementById(`check-${key}`);
-
-  if (val.length > 0) {
-    input.classList.add('confirmed');
-    check.classList.add('visible');
-    confirmedValues[key] = val;
-  } else {
-    input.classList.remove('confirmed');
-    check.classList.remove('visible');
-    delete confirmedValues[key];
-  }
-  updateProgress();
+function focusFirstLowField() {
+  document.querySelectorAll('.field-row.warning-focus').forEach(el => el.classList.remove('warning-focus'));
+  const firstLow = document.querySelector('.field-row[data-confidence="low"]');
+  if (!firstLow) return;
+  firstLow.classList.add('warning-focus');
+  firstLow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const input = firstLow.querySelector('.field-input');
+  if (input) input.focus({ preventScroll: true });
 }
 
-// ─── Progress ─────────────────────────────────────────────────────────────────
-function updateProgress() {
-  const total = FIELD_DEFS.filter(d => {
-    const f = extractedFields[d.key];
-    return f && (f.value || f.confidence !== 'high');
-  }).length || FIELD_DEFS.length;
-
-  const confirmed = Object.keys(confirmedValues).length;
-  const needsReview = document.querySelectorAll('.field-card[data-confidence="med"], .field-card[data-confidence="low"]').length;
-  const allResolved = Object.keys(confirmedValues).length >= document.querySelectorAll('.confirm-input').length + document.querySelectorAll('.field-card[data-confidence="high"]').length;
-
-  // Count total reviewable fields
-  const totalCards = document.querySelectorAll('.field-card').length;
-  const highCards = document.querySelectorAll('.field-card[data-confidence="high"]').length;
-  const reviewCards = document.querySelectorAll('.confirm-input').length;
-  const reviewConfirmed = document.querySelectorAll('.confirm-input.confirmed').length;
-  const totalConfirmed = highCards + reviewConfirmed;
-  const grandTotal = highCards + reviewCards;
-
-  const pct = grandTotal > 0 ? Math.round((totalConfirmed / grandTotal) * 100) : 0;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = `${totalConfirmed} / ${grandTotal} confirmed`;
-
-  const allDone = reviewCards === reviewConfirmed;
-  document.getElementById('btn-copy-all').disabled = !allDone;
-  document.getElementById('btn-export').disabled = !allDone;
+function getFieldValue(key) {
+  const input = document.querySelector(`.field-input[data-key="${key}"]`);
+  if (input) return input.value;
+  return fieldValues[key] || '';
 }
 
-// ─── Image highlights (placeholder — extend with real coordinates if needed) ──
-function highlightField(key) { /* future: draw bbox on image */ }
-function clearHighlights() {}
-
-// ─── Copy / export ────────────────────────────────────────────────────────────
-function getFinalValue(key) {
-  // Prefer confirmed (human-entered) value, then fall back to extracted
-  if (confirmedValues[key]) return confirmedValues[key];
-  const f = extractedFields[key];
-  return f?.value || '';
-}
-
-function copyField(key) {
-  const val = getFinalValue(key);
-  if (!val) return;
-  navigator.clipboard.writeText(val).then(() => {
-    const btn = document.querySelector(`.field-copy[onclick="copyField('${key}')"]`);
-    if (btn) { btn.textContent = '✓'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = '⎘'; btn.classList.remove('copied'); }, 1500); }
-  });
+function copyField(key, btn) {
+  const value = getFieldValue(key);
+  navigator.clipboard.writeText(value).then(() => {
+    const original = btn.textContent;
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    showToast('Copied', true);
+    setTimeout(() => {
+      btn.textContent = original === '✓' ? '⎘' : original;
+      btn.classList.remove('copied');
+    }, 1200);
+  }).catch(() => showToast('Copy failed'));
 }
 
 function copyAll() {
-  const lines = FIELD_DEFS.map(d => {
-    const val = getFinalValue(d.key);
-    return val ? `${d.label}: ${val}` : null;
-  }).filter(Boolean).join('\n');
-
-  navigator.clipboard.writeText(lines).then(() => showToast('All fields copied to clipboard', true));
+  const lines = FIELD_DEFS.map(def => `${def.label}: ${getFieldValue(def.key) || ''}`).join('\n');
+  navigator.clipboard.writeText(lines)
+    .then(() => showToast('All fields copied', true))
+    .catch(() => showToast('Copy failed'));
 }
 
 function exportCSV() {
-  const headers = FIELD_DEFS.map(d => d.label).join(',');
-  const values = FIELD_DEFS.map(d => {
-    const v = getFinalValue(d.key);
-    return `"${(v || '').replace(/"/g, '""')}"`;
-  }).join(',');
-
-  const csv = headers + '\n' + values;
+  const headers = FIELD_DEFS.map(def => `"${def.label.replace(/"/g, '""')}"`).join(',');
+  const values = FIELD_DEFS.map(def => `"${(getFieldValue(def.key) || '').replace(/"/g, '""')}"`).join(',');
+  const csv = `${headers}\n${values}`;
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -695,83 +675,125 @@ function exportCSV() {
   showToast('CSV exported', true);
 }
 
-// ─── UI state helpers ─────────────────────────────────────────────────────────
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const raw = String(reader.result || '');
+      const parts = raw.split(',');
+      resolve(parts[1] || '');
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function showScanning() {
-  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('empty-state').classList.remove('active');
+  document.getElementById('fields-scroll').classList.remove('visible');
+  document.getElementById('fields-footer').classList.remove('visible');
   document.getElementById('scanning-state').classList.add('active');
-  document.getElementById('fields-scroll').classList.add('hidden');
-  document.getElementById('fields-footer').style.display = 'none';
-  hideError();
 }
 
 function showEmpty() {
   document.getElementById('scanning-state').classList.remove('active');
-  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('fields-scroll').classList.remove('visible');
+  document.getElementById('fields-footer').classList.remove('visible');
+  document.getElementById('empty-state').classList.add('active');
 }
 
 function showError(msg) {
   const el = document.getElementById('error-banner');
-  el.textContent = '⚠ ' + msg;
+  el.textContent = `⚠ ${msg}`;
   el.classList.add('visible');
 }
-
 function hideError() {
   document.getElementById('error-banner').classList.remove('visible');
 }
 
 function resetAll() {
   currentFile = null;
-  extractedFields = [];
-  confirmedValues = {};
-  document.getElementById('card-img').src = '';
+  ocrData = {};
+  fieldValues = {};
+  cardImg.src = '';
+  document.getElementById('zoom-img').src = '';
   document.getElementById('image-container').classList.remove('visible');
   document.getElementById('drop-instructions').style.display = '';
+  document.getElementById('image-actions').classList.remove('visible');
+  document.getElementById('btn-rescan').style.display = 'none';
+  document.getElementById('fields-scroll').innerHTML = '';
   dropZone.classList.remove('has-image');
   dropZone.style.cursor = 'pointer';
-  document.getElementById('image-actions').classList.remove('visible');
-  document.getElementById('fields-list').innerHTML = '';
-  document.getElementById('fields-scroll').classList.add('hidden');
-  document.getElementById('fields-footer').style.display = 'none';
-  document.getElementById('empty-state').style.display = 'flex';
-  document.getElementById('scanning-state').classList.remove('active');
-  document.getElementById('file-input').value = '';
+  fileInput.value = '';
   hideError();
+  showEmpty();
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
 let toastTimer;
-function showToast(msg, success = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (success ? ' success' : '');
+function showToast(message, success = false) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast show${success ? ' success' : ''}`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
 }
 
-// ─── Config modal ─────────────────────────────────────────────────────────────
 function openConfig() {
-  const saved = localStorage.getItem('ocr_api_key') || '';
-  document.getElementById('api-key-input').value = saved;
+  document.getElementById('api-key-input').value = localStorage.getItem('ocr_api_key') || '';
   document.getElementById('modal-overlay').classList.add('open');
 }
-function closeConfig() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeConfig() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
 function saveConfig() {
   const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('sk-ant-')) { showToast('Key must start with sk-ant-'); return; }
+  if (!key.startsWith('sk-ant-')) {
+    showToast('Key must start with sk-ant-');
+    return;
+  }
   localStorage.setItem('ocr_api_key', key);
   closeConfig();
   showToast('API key saved', true);
   if (currentFile) runOCR();
 }
 
-// Close modal on overlay click
+function openZoom() {
+  if (!cardImg.src) return;
+  document.getElementById('image-zoom-overlay').classList.add('open');
+}
+function closeZoom() {
+  document.getElementById('image-zoom-overlay').classList.remove('open');
+}
+
 document.getElementById('modal-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-overlay')) closeConfig();
+  if (e.target.id === 'modal-overlay') closeConfig();
+});
+document.getElementById('image-zoom-overlay').addEventListener('click', e => {
+  if (e.target.id === 'image-zoom-overlay') closeZoom();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeConfig();
+    closeZoom();
+  }
 });
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+function escapeAttr(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 if (!localStorage.getItem('ocr_api_key')) {
-  setTimeout(openConfig, 400);
+  setTimeout(openConfig, 350);
 }
 </script>
 </body>
