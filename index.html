@@ -30,6 +30,25 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    transition: all 0.26s ease;
+  }
+  .left-content {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .left-mode {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+  }
+  .left-mode.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
   }
   .image-wrap {
     flex: 1;
@@ -76,6 +95,7 @@
   }
   .btn:hover { color: var(--text); border-color: var(--muted); }
   #file-input { display: none; }
+  #batch-file-input { display: none; }
 
   .right-panel {
     background: var(--surface);
@@ -113,6 +133,18 @@
     transition: all 0.18s;
   }
   .gear-btn:hover { color: var(--text); border-color: var(--muted); }
+  .head-actions { display: flex; gap: 8px; align-items: center; }
+  .batch-toggle {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .batch-toggle.active { color: var(--green); border-color: var(--green); }
 
   .fields {
     overflow-y: auto;
@@ -120,7 +152,7 @@
   }
   .field-row {
     display: grid;
-    grid-template-columns: 62px 1fr 150px 28px;
+    grid-template-columns: 175px 1fr 150px 28px;
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
@@ -144,6 +176,34 @@
   .badge.green { background: rgba(34,201,122,0.14); color: var(--green); }
   .badge.amber { background: rgba(245,158,11,0.16); color: var(--amber); }
   .badge.red { background: rgba(239,68,68,0.16); color: var(--red); }
+  .badge-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .inline-btn {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: all 0.16s;
+  }
+  .inline-btn:hover { color: var(--text); border-color: var(--muted); }
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(122,127,142,0.3);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  .pass2 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--green);
+    border: 1px solid rgba(34,201,122,0.45);
+    padding: 2px 5px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .value-wrap { position: relative; }
   .value-input {
@@ -348,6 +408,84 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
+  .batch-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 12px;
+    gap: 10px;
+  }
+  .batch-drop {
+    border: 1px dashed var(--line);
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .batch-drop:hover { border-color: var(--muted); color: var(--text); }
+  .batch-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .batch-progress {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .queue {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+  }
+  .queue-item {
+    display: grid;
+    grid-template-columns: 50px 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .thumb {
+    width: 50px;
+    height: 38px;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    background: var(--surface2);
+  }
+  .queue-name {
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .queue-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 6px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .status.done { color: var(--green); border-color: var(--green); }
+  .status.fail { color: var(--red); border-color: var(--red); }
+  .remove-btn {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+  }
+
   @media (max-width: 1100px) {
     .app { grid-template-columns: 1fr; grid-template-rows: 48% 52%; }
     .left-panel { border-right: none; border-bottom: 1px solid var(--line); }
@@ -357,18 +495,37 @@
 <body>
 <div class="app">
   <section class="left-panel">
-    <div class="image-wrap empty" id="image-wrap" onclick="openPickerIfEmpty()">
-      <img id="card-img" alt="Card image">
-      <div class="drop-hint" id="drop-hint">
-        <strong>Upload Kuwait registration card</strong><br>
-        Click to browse or drag and drop<br>
-        PNG · JPG · WEBP
+    <div class="left-content">
+      <div class="left-mode" id="single-mode">
+        <div class="image-wrap empty" id="image-wrap" onclick="openPickerIfEmpty()">
+          <img id="card-img" alt="Card image">
+          <div class="drop-hint" id="drop-hint">
+            <strong>Upload Kuwait registration card</strong><br>
+            Click to browse or drag and drop<br>
+            PNG · JPG · WEBP
+          </div>
+        </div>
+        <div class="left-footer">
+          <button class="btn" onclick="newScan()">New scan</button>
+          <button class="btn" onclick="runOCR()" id="rescan-btn" style="display:none;">Re-scan</button>
+          <input id="file-input" type="file" accept="image/*">
+        </div>
       </div>
-    </div>
-    <div class="left-footer">
-      <button class="btn" onclick="newScan()">New scan</button>
-      <button class="btn" onclick="runOCR()" id="rescan-btn" style="display:none;">Re-scan</button>
-      <input id="file-input" type="file" accept="image/*">
+      <div class="left-mode hidden" id="batch-mode">
+        <div class="batch-wrap">
+          <div class="batch-drop" id="batch-drop" onclick="openBatchPicker()">
+            Drop multiple images here or click to add
+          </div>
+          <div class="batch-controls">
+            <button class="btn" onclick="openBatchPicker()">Add cards</button>
+            <button class="btn" onclick="scanAllBatch()" id="scan-all-btn">Scan all</button>
+            <button class="btn" onclick="exportAllCSV()" id="export-all-btn" style="display:none;">Export all as CSV</button>
+            <input id="batch-file-input" type="file" accept="image/*" multiple>
+          </div>
+          <div class="batch-progress" id="batch-progress">Queue: 0 cards</div>
+          <div class="queue" id="queue"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -378,7 +535,10 @@
         <div class="head-title">REG·OCR</div>
         <div class="head-sub">Kuwait Vehicle Registration</div>
       </div>
-      <button class="gear-btn" onclick="openConfig()" title="API config">⚙</button>
+      <div class="head-actions">
+        <button class="batch-toggle" id="batch-toggle" onclick="toggleBatchMode()">Batch scan</button>
+        <button class="gear-btn" onclick="openConfig()" title="API config">⚙</button>
+      </div>
     </header>
 
     <div class="fields" id="fields"></div>
@@ -457,8 +617,16 @@ let ocrData = {};
 let values = {};
 let scanTextTimer = null;
 let toastTimer = null;
+let secondPassState = {};
+let batchMode = false;
+let batchQueue = [];
+let batchResults = [];
+let batchScanning = false;
+let batchProgress = { current: 0, total: 0 };
 
 const fileInput = document.getElementById('file-input');
+const batchFileInput = document.getElementById('batch-file-input');
+const batchDrop = document.getElementById('batch-drop');
 const imageWrap = document.getElementById('image-wrap');
 const cardImg = document.getElementById('card-img');
 const zoomImg = document.getElementById('zoom-img');
@@ -484,6 +652,15 @@ function bindImageEvents() {
     const file = e.target.files[0];
     if (file) loadFile(file);
   });
+  batchFileInput.addEventListener('change', e => {
+    addBatchFiles(e.target.files);
+    batchFileInput.value = '';
+  });
+  batchDrop.addEventListener('dragover', e => e.preventDefault());
+  batchDrop.addEventListener('drop', e => {
+    e.preventDefault();
+    addBatchFiles(e.dataTransfer.files);
+  });
   cardImg.addEventListener('click', e => {
     if (!currentFile) return;
     e.stopPropagation();
@@ -492,6 +669,7 @@ function bindImageEvents() {
 }
 
 function openPickerIfEmpty() {
+  if (batchMode) return;
   if (!currentFile) fileInput.click();
 }
 
@@ -511,6 +689,38 @@ function loadFile(file) {
   document.getElementById('drop-hint').style.display = 'none';
   document.getElementById('rescan-btn').style.display = 'inline-block';
   runOCR();
+}
+
+function toggleBatchMode() {
+  batchMode = !batchMode;
+  document.getElementById('batch-toggle').classList.toggle('active', batchMode);
+  document.getElementById('single-mode').classList.toggle('hidden', batchMode);
+  document.getElementById('batch-mode').classList.toggle('hidden', !batchMode);
+}
+
+function openBatchPicker() {
+  if (batchScanning) return;
+  batchFileInput.click();
+}
+
+function addBatchFiles(fileList) {
+  if (!fileList || batchScanning) return;
+  const files = [...fileList].filter(f => f.type.startsWith('image/'));
+  files.forEach(file => {
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const url = URL.createObjectURL(file);
+    batchQueue.push({ id, file, url, status: 'Waiting', error: '', result: null });
+  });
+  renderQueue();
+}
+
+function removeQueueItem(id) {
+  if (batchScanning) return;
+  const idx = batchQueue.findIndex(q => q.id === id);
+  if (idx < 0) return;
+  URL.revokeObjectURL(batchQueue[idx].url);
+  batchQueue.splice(idx, 1);
+  renderQueue();
 }
 
 function getBadgeClass(conf) {
@@ -539,8 +749,15 @@ function renderFields(hasResult = true) {
     row.className = 'field-row';
     row.dataset.key = def.key;
     row.dataset.confidence = String(confidence);
+    const sp = secondPassState[def.key] || { running: false, used: false };
+    const rescannable = confidence < 90;
     row.innerHTML = `
-      <span class="badge ${cls}">${confidence}%</span>
+      <div class="badge-wrap">
+        <span class="badge ${cls}">${confidence}%</span>
+        ${rescannable ? `<button class="inline-btn" data-rescan="${def.key}">Re-scan region</button>` : ''}
+        ${sp.running ? `<span class="spinner" title="Running second pass"></span>` : ''}
+        ${sp.used ? `<span class="pass2">2nd pass</span>` : ''}
+      </div>
       <div class="value-wrap">
         <input class="value-input ${cls} ${cls === 'red' ? 'pulse' : ''}" data-key="${def.key}" type="text" placeholder="—" value="${escapeAttr(values[def.key] || '')}">
       </div>
@@ -558,6 +775,9 @@ function renderFields(hasResult = true) {
   });
   fieldsEl.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => copyField(btn));
+  });
+  fieldsEl.querySelectorAll('[data-rescan]').forEach(btn => {
+    btn.addEventListener('click', () => runSecondPassForField(btn.dataset.rescan, true));
   });
 
   updateProgress();
@@ -617,41 +837,75 @@ async function runOCR() {
   }
   showScanOverlay(true);
   try {
-    const processed = await preprocessImage(currentFile);
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: processed } },
-            { type: 'text', text: OCR_PROMPT }
-          ]
-        }]
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${res.status}`);
-    }
-    const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    const parsed = parseClaudeJSON(text);
-    mapParsed(parsed);
-    renderFields(true);
+    const result = await scanCardFile(currentFile, true);
+    applyScanResultToUI(result);
   } catch (err) {
     showToast(err.message || 'Scan failed');
   } finally {
     showScanOverlay(false);
   }
+}
+
+async function scanCardFile(file, runSecondPass = true) {
+  const key = localStorage.getItem('ocr_api_key');
+  const processed = await preprocessImage(file);
+  const firstPass = await callClaudeForJSON({
+    imageB64: processed,
+    mediaType: 'image/jpeg',
+    prompt: OCR_PROMPT,
+    maxTokens: 2000,
+    apiKey: key
+  });
+  const parsed = parseClaudeJSON(firstPass);
+  const mapped = mapParsedToObject(parsed);
+  const valuesObj = {};
+  const state = {};
+  FIELD_DEFS.forEach(f => {
+    valuesObj[f.key] = mapped[f.key].value;
+    state[f.key] = { running: false, used: false };
+  });
+  if (runSecondPass) {
+    const lowKeys = FIELD_DEFS.filter(f => mapped[f.key].confidence < 90).map(f => f.key);
+    await Promise.all(lowKeys.map(k => secondPassForField(k, file, mapped, state, valuesObj, false)));
+  }
+  const avg = Math.round(FIELD_DEFS.reduce((sum, f) => sum + mapped[f.key].confidence, 0) / FIELD_DEFS.length);
+  return { mapped, valuesObj, state, avg };
+}
+
+function applyScanResultToUI(result) {
+  ocrData = result.mapped;
+  values = result.valuesObj;
+  secondPassState = result.state;
+  renderFields(true);
+}
+
+async function callClaudeForJSON({ imageB64, mediaType, prompt, maxTokens, apiKey }) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageB64 } },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  return data.content?.[0]?.text || '';
 }
 
 function showScanOverlay(show) {
@@ -695,6 +949,92 @@ function mapParsed(parsed) {
     ocrData[f.key] = { value: val, confidence, note };
     values[f.key] = val;
   });
+}
+
+function mapParsedToObject(parsed) {
+  const out = {};
+  FIELD_DEFS.forEach(f => {
+    const v = parsed?.[f.key] || {};
+    const val = typeof v.value === 'string' ? v.value : '';
+    const conf = Number(v.confidence);
+    const confidence = Number.isFinite(conf) ? Math.max(0, Math.min(100, conf)) : (val ? 80 : 0);
+    const note = typeof v.note === 'string' ? v.note : '';
+    out[f.key] = { value: val, confidence, note };
+  });
+  return out;
+}
+
+const CROP_ZONES = {
+  plate_number:       { top: 0, left: 50, width: 50, height: 12 },
+  owner_id:           { top: 8, left: 0, width: 60, height: 10 },
+  owner_name_arabic:  { top: 15, left: 0, width: 70, height: 10 },
+  owner_name_english: { top: 22, left: 0, width: 70, height: 10 },
+  reference_number:   { top: 28, left: 0, width: 50, height: 8 },
+  insurance_company:  { top: 35, left: 0, width: 70, height: 8 },
+  policy_number:      { top: 35, left: 0, width: 100, height: 10 },
+  expiry_date:        { top: 35, left: 0, width: 60, height: 8 },
+  chassis_vin:        { top: 45, left: 0, width: 100, height: 10 },
+  make:               { top: 55, left: 0, width: 60, height: 8 },
+  year:               { top: 55, left: 40, width: 40, height: 8 },
+  model:              { top: 55, left: 0, width: 60, height: 8 },
+  color_primary:      { top: 62, left: 0, width: 60, height: 8 },
+  color_secondary:    { top: 62, left: 0, width: 80, height: 8 },
+  issue_date:         { top: 80, left: 0, width: 70, height: 10 },
+  card_number:        { top: 80, left: 0, width: 100, height: 12 }
+};
+
+function getFieldPromptName(key) {
+  const def = FIELD_DEFS.find(f => f.key === key);
+  if (!def) return `${key}`;
+  return `${def.ar} (${def.key})`;
+}
+
+async function runSecondPassForField(key, manual = false) {
+  if (!currentFile) return;
+  await secondPassForField(key, currentFile, ocrData, secondPassState, values, manual);
+  renderFields(true);
+}
+
+async function secondPassForField(key, file, dataObj, stateObj, valuesObj, manual) {
+  stateObj[key] = stateObj[key] || { running: false, used: false };
+  if (stateObj[key].running) return;
+  stateObj[key].running = true;
+  if (manual) renderFields(true);
+  try {
+    const cropB64 = await buildEnhancedCrop(file, key);
+    const fieldName = getFieldPromptName(key);
+    const focusedPrompt = `This is a zoomed-in crop from a Kuwait vehicle registration card.
+Your only job is to read the value of this specific field: ${fieldName}.
+Look very carefully at every character.
+If a digit or letter is partially covered by a watermark or stamp, use the visible parts of the character to determine what it is.
+Return ONLY this JSON: { 'value': '...', 'confidence': 95, 'note': '...' }
+Do not return anything else.`;
+    const keyApi = localStorage.getItem('ocr_api_key');
+    const raw = await callClaudeForJSON({
+      imageB64: cropB64,
+      mediaType: 'image/png',
+      prompt: focusedPrompt,
+      maxTokens: 350,
+      apiKey: keyApi
+    });
+    const parsed = parseClaudeJSON(raw);
+    const candidate = parsed?.value;
+    const conf = Number(parsed?.confidence);
+    const note = typeof parsed?.note === 'string' ? parsed.note : '';
+    const nextConf = Number.isFinite(conf) ? Math.max(0, Math.min(100, conf)) : dataObj[key].confidence;
+    if (nextConf > dataObj[key].confidence) {
+      dataObj[key].confidence = nextConf;
+      dataObj[key].value = typeof candidate === 'string' ? candidate : dataObj[key].value;
+      dataObj[key].note = note;
+      valuesObj[key] = dataObj[key].value;
+      stateObj[key].used = true;
+    }
+  } catch (err) {
+    // Silent in auto mode; manual path surfaced through toast.
+    if (manual) showToast(err.message || 'Second pass failed');
+  } finally {
+    stateObj[key].running = false;
+  }
 }
 
 function preprocessImage(file) {
@@ -756,6 +1096,152 @@ function preprocessImage(file) {
   });
 }
 
+function buildEnhancedCrop(file, fieldKey) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      const zone = CROP_ZONES[fieldKey] || { top: 0, left: 0, width: 100, height: 100 };
+      const sx = Math.round((zone.left / 100) * w);
+      const sy = Math.round((zone.top / 100) * h);
+      const sw = Math.round((zone.width / 100) * w);
+      const sh = Math.round((zone.height / 100) * h);
+
+      const targetW = Math.max(sw, 800);
+      const scale = targetW / sw;
+      const targetH = Math.max(1, Math.round(sh * scale));
+
+      const c = document.createElement('canvas');
+      c.width = targetW;
+      c.height = targetH;
+      const ctx = c.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas unavailable'));
+        return;
+      }
+      ctx.filter = 'contrast(150%) brightness(115%)';
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
+      ctx.filter = 'none';
+
+      const src = ctx.getImageData(0, 0, targetW, targetH);
+      const out = ctx.createImageData(targetW, targetH);
+      const kernel = [0, -1, 0, -1, 6, -1, 0, -1, 0];
+      const side = 3;
+      const half = 1;
+      for (let y = 0; y < targetH; y++) {
+        for (let x = 0; x < targetW; x++) {
+          const dstOff = (y * targetW + x) * 4;
+          let r = 0, g = 0, b = 0;
+          for (let ky = 0; ky < side; ky++) {
+            for (let kx = 0; kx < side; kx++) {
+              const px = Math.min(targetW - 1, Math.max(0, x + kx - half));
+              const py = Math.min(targetH - 1, Math.max(0, y + ky - half));
+              const srcOff = (py * targetW + px) * 4;
+              const wt = kernel[ky * side + kx];
+              r += src.data[srcOff] * wt;
+              g += src.data[srcOff + 1] * wt;
+              b += src.data[srcOff + 2] * wt;
+            }
+          }
+          out.data[dstOff] = Math.max(0, Math.min(255, r));
+          out.data[dstOff + 1] = Math.max(0, Math.min(255, g));
+          out.data[dstOff + 2] = Math.max(0, Math.min(255, b));
+          out.data[dstOff + 3] = src.data[dstOff + 3];
+        }
+      }
+      ctx.putImageData(out, 0, 0);
+      const b64 = c.toDataURL('image/png').split(',')[1] || '';
+      resolve(b64);
+    };
+    img.onerror = () => reject(new Error('Crop processing failed'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function renderQueue() {
+  const q = document.getElementById('queue');
+  q.innerHTML = '';
+  batchQueue.forEach(item => {
+    const plate = item.result?.valuesObj?.plate_number || '';
+    const owner = item.result?.valuesObj?.owner_name_arabic || item.result?.valuesObj?.owner_name_english || '';
+    const statusCls = item.status === 'Done' ? 'done' : item.status === 'Failed' ? 'fail' : '';
+    const row = document.createElement('div');
+    row.className = 'queue-item';
+    row.innerHTML = `
+      <img class="thumb" src="${item.url}" alt="thumb">
+      <div>
+        <div class="queue-name">${escapeHtml(item.file.name)}</div>
+        <div class="queue-sub">${item.status === 'Done' ? `Plate: ${plate || '-'} | Owner: ${owner || '-'}` : ''}</div>
+      </div>
+      <span class="status ${statusCls}" title="${escapeAttr(item.error || '')}">${item.status}${item.status === 'Done' ? ' ✓' : ''}</span>
+      <button class="remove-btn" data-remove="${item.id}" ${batchScanning ? 'disabled' : ''}>×</button>
+    `;
+    q.appendChild(row);
+  });
+  q.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => removeQueueItem(btn.dataset.remove));
+  });
+  const waiting = batchQueue.filter(i => i.status === 'Waiting').length;
+  document.getElementById('batch-progress').textContent = batchScanning
+    ? `Scanning ${batchProgress.current} of ${batchProgress.total}...`
+    : `Queue: ${batchQueue.length} cards (${waiting} waiting)`;
+  const doneCount = batchQueue.filter(i => i.status === 'Done').length;
+  document.getElementById('export-all-btn').style.display = doneCount > 0 && !batchScanning ? 'inline-block' : 'none';
+}
+
+async function scanAllBatch() {
+  if (batchScanning || batchQueue.length === 0) return;
+  batchScanning = true;
+  batchResults = [];
+  const items = batchQueue.filter(i => i.status === 'Waiting' || i.status === 'Failed');
+  batchProgress.total = items.length;
+  batchProgress.current = 0;
+  renderQueue();
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    batchProgress.current = i + 1;
+    item.status = 'Scanning';
+    item.error = '';
+    renderQueue();
+    try {
+      const result = await scanCardFile(item.file, true);
+      item.status = 'Done';
+      item.result = result;
+      batchResults.push({ filename: item.file.name, result });
+      // Also show last scanned in right panel
+      applyScanResultToUI(result);
+    } catch (err) {
+      item.status = 'Failed';
+      item.error = err.message || 'Scan failed';
+    }
+    renderQueue();
+  }
+  batchScanning = false;
+  renderQueue();
+}
+
+function exportAllCSV() {
+  const done = batchQueue.filter(i => i.status === 'Done' && i.result);
+  if (done.length === 0) return;
+  const headers = ['filename', ...FIELD_DEFS.map(f => f.key), 'confidence_avg'];
+  const rows = done.map(item => {
+    const vals = FIELD_DEFS.map(f => (item.result.valuesObj[f.key] || '').replace(/"/g, '""'));
+    return [
+      `"${item.file.name.replace(/"/g, '""')}"`,
+      ...vals.map(v => `"${v}"`),
+      `"${item.result.avg}"`
+    ].join(',');
+  });
+  const csv = `${headers.join(',')}\n${rows.join('\n')}`;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `batch_reg_cards_${Date.now()}.csv`;
+  a.click();
+  showToast('Batch CSV exported');
+}
+
 function newScan() {
   currentFile = null;
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -812,6 +1298,13 @@ function escapeAttr(text) {
   return String(text)
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
